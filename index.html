@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listenwahl-Ranking System</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useMemo } = React;
+        
+        // Lucide Icons als einfache SVG-Komponenten
+        const Calculator = ({ size = 24, color = "currentColor" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="4" y="2" width="16" height="20" rx="2"/>
+                <line x1="8" y1="6" x2="16" y2="6"/>
+                <line x1="16" y1="10" x2="16" y2="10.01"/>
+                <line x1="12" y1="10" x2="12" y2="10.01"/>
+                <line x1="8" y1="10" x2="8" y2="10.01"/>
+                <line x1="16" y1="14" x2="16" y2="14.01"/>
+                <line x1="12" y1="14" x2="12" y2="14.01"/>
+                <line x1="8" y1="14" x2="8" y2="14.01"/>
+                <line x1="16" y1="18" x2="16" y2="18.01"/>
+                <line x1="12" y1="18" x2="12" y2="18.01"/>
+                <line x1="8" y1="18" x2="8" y2="18.01"/>
+            </svg>
+        );
+        
+        const Users = ({ size = 24, color = "currentColor" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+        );
+        
+        const Award = ({ size = 24, color = "currentColor" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="8" r="7"/>
+                <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+            </svg>
+        );
+        
+        const Settings = ({ size = 24, color = "currentColor" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3"/>
+            </svg>
+        );
+        
+        const ChevronDown = ({ size = 24, color = "currentColor" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9"/>
+            </svg>
+        );
+        
+        const ChevronUp = ({ size = 24, color = "currentColor" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="18 15 12 9 6 15"/>
+            </svg>
+        );
+        
+        const TrendingUp = ({ size = 24, color = "currentColor" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                <polyline points="17 6 23 6 23 12"/>
+            </svg>
+        );
+        
+        const Save = ({ size = 24, color = "currentColor" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+            </svg>
+        );
+        
+        const Trash = ({ size = 24, color = "currentColor" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+        );
+        
+        const FolderOpen = ({ size = 24, color = "currentColor" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+        );
+        
+        const Trash2 = ({ size = 24, color = "currentColor" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+            </svg>
+        );
+
+        const ListenwahlRanking = () => {
+          const [showWeights, setShowWeights] = useState(false);
+          const [savedRankings, setSavedRankings] = useState([]);
+          
+          const [weights, setWeights] = useState({
+            votes: 10,
+            workgroups: 10,
+            attendance: 10,
+            punctualityStart: 10,
+            punctualityShort: 5,
+            punctualityLunch: 10,
+            partialRelease: 10,
+            fullRelease: 10,
+            membership: 15,
+            age: 10
+          });
+
+          const [persons, setPersons] = useState(
+            Array(11).fill(null).map((_, idx) => ({
+              id: idx,
+              firstName: '',
+              lastName: '',
+              gender: 'divers',
+              ageYears: 0,
+              ageMonths: 0,
+              votes: 0,
+              workgroups: 0,
+              attendance: 100,
+              punctualityStart: 0,
+              punctualityShort: 0,
+              punctualityLunch: 0,
+              partialRelease: false,
+              fullRelease: false,
+              membershipYears: 0,
+              membershipMonths: 0
+            }))
+          );
+
+          // LocalStorage laden beim Start
+          React.useEffect(() => {
+            const saved = localStorage.getItem('listenwahl-rankings');
+            if (saved) {
+              try {
+                setSavedRankings(JSON.parse(saved));
+              } catch (e) {
+                console.error('Fehler beim Laden:', e);
+              }
+            }
+          }, []);
+
+          // Speichern im LocalStorage
+          const saveRanking = () => {
+            const name = prompt('Gib einen Namen für dieses Ranking ein:');
+            if (!name) return;
+            
+            const ranking = {
+              id: Date.now(),
+              name,
+              date: new Date().toLocaleString('de-DE'),
+              weights,
+              persons
+            };
+            
+            const updated = [...savedRankings, ranking];
+            setSavedRankings(updated);
+            localStorage.setItem('listenwahl-rankings', JSON.stringify(updated));
+            alert(`Ranking "${name}" wurde gespeichert!`);
+          };
+
+          // Ranking laden
+          const loadRanking = (ranking) => {
+            if (confirm(`Ranking "${ranking.name}" laden? Aktuelle Daten werden überschrieben.`)) {
+              setWeights(ranking.weights);
+              setPersons(ranking.persons);
+            }
+          };
+
+          // Ranking löschen
+          const deleteRanking = (id) => {
+            if (confirm('Dieses gespeicherte Ranking wirklich löschen?')) {
+              const updated = savedRankings.filter(r => r.id !== id);
+              setSavedRankings(updated);
+              localStorage.setItem('listenwahl-rankings', JSON.stringify(updated));
+            }
+          };
+
+          // Einzelne Person zurücksetzen (außer Basis-Daten)
+          const resetPersonData = (id) => {
+            if (confirm('Alle Bewertungsdaten dieser Person löschen? (Name, Geschlecht, Alter, Mitgliedschaft bleiben erhalten)')) {
+              setPersons(prev => prev.map(p => 
+                p.id === id ? {
+                  ...p,
+                  votes: 0,
+                  workgroups: 0,
+                  attendance: 100,
+                  punctualityStart: 0,
+                  punctualityShort: 0,
+                  punctualityLunch: 0,
+                  partialRelease: false,
+                  fullRelease: false
+                } : p
+              ));
+            }
+          };
+
+          // Alle Personen zurücksetzen (außer Basis-Daten)
+          const resetAllData = () => {
+            if (confirm('Alle Bewertungsdaten aller Personen löschen? (Name, Geschlecht, Alter, Mitgliedschaft bleiben erhalten)')) {
+              setPersons(prev => prev.map(p => ({
+                ...p,
+                votes: 0,
+                workgroups: 0,
+                attendance: 100,
+                punctualityStart: 0,
+                punctualityShort: 0,
+                punctualityLunch: 0,
+                partialRelease: false,
+                fullRelease: false
+              })));
+            }
+          };
+
+          const totalWeight = useMemo(() => {
+            return Object.values(weights).reduce((sum, val) => sum + val, 0);
+          }, [weights]);
+
+          const remainingWeight = 100 - totalWeight;
+
+          const updatePerson = (id, field, value) => {
+            setPersons(prev => prev.map(p => 
+              p.id === id ? { ...p, [field]: value } : p
+            ));
+          };
+
+          const updateWeight = (field, value) => {
+            setWeights(prev => ({ ...prev, [field]: parseFloat(value) || 0 }));
+          };
+
+          const normalize = (value, min, max) => {
+            if (max === min) return 50;
+            return ((value - min) / (max - min)) * 100;
+          };
+
+          const calculatePunctualityScore = (minutes) => {
+            if (minutes >= 0) return 100;
+            if (minutes >= -5) return 75;
+            if (minutes >= -10) return 50;
+            return 25;
+          };
+
+          const calculateScores = useMemo(() => {
+            const validPersons = persons.filter(p => p.firstName && p.lastName);
+            if (validPersons.length === 0) return [];
+
+            const votes = validPersons.map(p => p.votes);
+            const workgroups = validPersons.map(p => p.workgroups);
+            const attendance = validPersons.map(p => p.attendance);
+            const membership = validPersons.map(p => p.membershipYears * 12 + p.membershipMonths);
+            const ages = validPersons.map(p => p.ageYears * 12 + p.ageMonths);
+
+            const ranges = {
+              votes: { min: Math.min(...votes), max: Math.max(...votes) },
+              workgroups: { min: Math.min(...workgroups), max: Math.max(...workgroups) },
+              attendance: { min: Math.min(...attendance), max: Math.max(...attendance) },
+              membership: { min: Math.min(...membership), max: Math.max(...membership) },
+              age: { min: Math.min(...ages), max: Math.max(...ages) }
+            };
+
+            return validPersons.map(person => {
+              const totalAge = person.ageYears * 12 + person.ageMonths;
+              const totalMembership = person.membershipYears * 12 + person.membershipMonths;
+
+              const scores = {
+                votes: normalize(person.votes, ranges.votes.min, ranges.votes.max) * (weights.votes / 100),
+                workgroups: normalize(person.workgroups, ranges.workgroups.min, ranges.workgroups.max) * (weights.workgroups / 100),
+                attendance: normalize(person.attendance, ranges.attendance.min, ranges.attendance.max) * (weights.attendance / 100),
+                punctualityStart: calculatePunctualityScore(person.punctualityStart) * (weights.punctualityStart / 100),
+                punctualityShort: calculatePunctualityScore(person.punctualityShort) * (weights.punctualityShort / 100),
+                punctualityLunch: calculatePunctualityScore(person.punctualityLunch) * (weights.punctualityLunch / 100),
+                partialRelease: (person.partialRelease ? 100 : 0) * (weights.partialRelease / 100),
+                fullRelease: (person.fullRelease ? 100 : 0) * (weights.fullRelease / 100),
+                membership: normalize(totalMembership, ranges.membership.min, ranges.membership.max) * (weights.membership / 100),
+                age: normalize(totalAge, ranges.age.min, ranges.age.max) * (weights.age / 100)
+              };
+
+              const totalScore = Object.values(scores).reduce((sum, val) => sum + val, 0);
+
+              return {
+                ...person,
+                scores,
+                totalScore,
+                isUnder40: person.ageYears < 40
+              };
+            });
+          }, [persons, weights]);
+
+          const sortedPersons = useMemo(() => {
+            return [...calculateScores].sort((a, b) => {
+              if (Math.abs(a.totalScore - b.totalScore) > 0.01) {
+                return b.totalScore - a.totalScore;
+              }
+              
+              if (a.gender !== b.gender) {
+                if (a.gender === 'weiblich') return -1;
+                if (b.gender === 'weiblich') return 1;
+              }
+              
+              if (a.isUnder40 !== b.isUnder40) {
+                return a.isUnder40 ? -1 : 1;
+              }
+              
+              return 0;
+            });
+          }, [calculateScores]);
+
+          return (
+            <div style={{
+              minHeight: '100vh',
+              background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
+              fontFamily: '"Space Grotesk", "Segoe UI", sans-serif',
+              color: '#f1f5f9',
+              padding: '2rem'
+            }}>
+              <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+                
+                * {
+                  box-sizing: border-box;
+                }
+                
+                input, select {
+                  font-family: 'JetBrains Mono', monospace;
+                }
+                
+                .card {
+                  background: rgba(30, 41, 59, 0.8);
+                  backdrop-filter: blur(10px);
+                  border: 1px solid rgba(148, 163, 184, 0.2);
+                  border-radius: 16px;
+                  padding: 1.5rem;
+                  margin-bottom: 1.5rem;
+                  transition: all 0.3s ease;
+                }
+                
+                .card:hover {
+                  border-color: rgba(59, 130, 246, 0.5);
+                  transform: translateY(-2px);
+                  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+                }
+                
+                .input-field {
+                  background: rgba(15, 23, 42, 0.6);
+                  border: 1px solid rgba(148, 163, 184, 0.3);
+                  border-radius: 8px;
+                  padding: 0.5rem 0.75rem;
+                  color: #f1f5f9;
+                  font-size: 0.9rem;
+                  transition: all 0.2s ease;
+                  width: 100%;
+                }
+                
+                .input-field:focus {
+                  outline: none;
+                  border-color: #3b82f6;
+                  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+                }
+                
+                .checkbox-wrapper {
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  cursor: pointer;
+                  padding: 0.5rem;
+                  border-radius: 8px;
+                  transition: background 0.2s ease;
+                }
+                
+                .checkbox-wrapper:hover {
+                  background: rgba(59, 130, 246, 0.1);
+                }
+                
+                .checkbox {
+                  width: 20px;
+                  height: 20px;
+                  cursor: pointer;
+                  accent-color: #3b82f6;
+                }
+                
+                .weight-input {
+                  background: rgba(59, 130, 246, 0.1);
+                  border: 1px solid rgba(59, 130, 246, 0.3);
+                  border-radius: 8px;
+                  padding: 0.5rem;
+                  color: #3b82f6;
+                  font-weight: 600;
+                  text-align: center;
+                  width: 80px;
+                }
+                
+                .weight-input:focus {
+                  outline: none;
+                  border-color: #3b82f6;
+                  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+                }
+                
+                .rank-badge {
+                  display: inline-flex;
+                  align-items: center;
+                  justify-content: center;
+                  width: 40px;
+                  height: 40px;
+                  border-radius: 50%;
+                  font-weight: 700;
+                  font-size: 1.1rem;
+                }
+                
+                .rank-1 {
+                  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+                  color: #78350f;
+                  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.4);
+                }
+                
+                .rank-2 {
+                  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+                  color: #0f172a;
+                  box-shadow: 0 4px 16px rgba(148, 163, 184, 0.4);
+                }
+                
+                .rank-3 {
+                  background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
+                  color: #7c2d12;
+                  box-shadow: 0 4px 16px rgba(251, 146, 60, 0.4);
+                }
+                
+                .rank-default {
+                  background: rgba(59, 130, 246, 0.2);
+                  color: #93c5fd;
+                  border: 2px solid rgba(59, 130, 246, 0.4);
+                }
+                
+                .score-bar {
+                  height: 8px;
+                  background: rgba(59, 130, 246, 0.2);
+                  border-radius: 4px;
+                  overflow: hidden;
+                  margin-top: 0.5rem;
+                }
+                
+                .score-fill {
+                  height: 100%;
+                  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+                  border-radius: 4px;
+                  transition: width 0.5s ease;
+                }
+                
+                @keyframes fadeInUp {
+                  from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                  }
+                  to {
+                    opacity: 1;
+                    transform: translateY(0);
+                  }
+                }
+                
+                .animate-in {
+                  animation: fadeInUp 0.5s ease forwards;
+                }
+                
+                .btn {
+                  border: none;
+                  border-radius: 8px;
+                  padding: 0.6rem 1.2rem;
+                  font-weight: 600;
+                  cursor: pointer;
+                  transition: all 0.2s ease;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  font-family: 'Space Grotesk', sans-serif;
+                  font-size: 0.9rem;
+                }
+                
+                .btn-primary {
+                  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                  color: white;
+                }
+                
+                .btn-primary:hover {
+                  transform: translateY(-2px);
+                  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+                }
+                
+                .btn-danger {
+                  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                  color: white;
+                }
+                
+                .btn-danger:hover {
+                  transform: translateY(-2px);
+                  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+                }
+                
+                .btn-secondary {
+                  background: rgba(59, 130, 246, 0.1);
+                  color: #3b82f6;
+                  border: 1px solid rgba(59, 130, 246, 0.3);
+                }
+                
+                .btn-secondary:hover {
+                  background: rgba(59, 130, 246, 0.2);
+                }
+                
+                .btn-small {
+                  padding: 0.4rem 0.8rem;
+                  font-size: 0.85rem;
+                }
+                
+                .saved-ranking-item {
+                  background: rgba(59, 130, 246, 0.05);
+                  border: 1px solid rgba(59, 130, 246, 0.2);
+                  border-radius: 8px;
+                  padding: 1rem;
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  transition: all 0.2s ease;
+                }
+                
+                .saved-ranking-item:hover {
+                  background: rgba(59, 130, 246, 0.1);
+                  border-color: rgba(59, 130, 246, 0.4);
+                }
+              `}</style>
+
+              <div style={{
+                maxWidth: '1400px',
+                margin: '0 auto 3rem',
+                textAlign: 'center'
+              }}>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '1rem',
+                  background: 'rgba(59, 130, 246, 0.1)',
+                  padding: '1rem 2rem',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(59, 130, 246, 0.3)',
+                  marginBottom: '1rem'
+                }}>
+                  <Calculator size={32} color="#3b82f6" />
+                  <h1 style={{
+                    fontSize: '2.5rem',
+                    fontWeight: '700',
+                    margin: 0,
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  }}>
+                    Listenwahl-Ranking
+                  </h1>
+                </div>
+                <p style={{
+                  fontSize: '1.1rem',
+                  color: '#94a3b8',
+                  maxWidth: '600px',
+                  margin: '0 auto'
+                }}>
+                  Ermittlung der optimalen Reihenfolge basierend auf gewichteten Kriterien
+                </p>
+              </div>
+
+              <div style={{
+                maxWidth: '1400px',
+                margin: '0 auto'
+              }}>
+                {/* Speichern/Laden Sektion */}
+                <div className="card" style={{ marginBottom: '2rem' }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '1rem'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <Save size={24} color="#3b82f6" />
+                      <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '600' }}>
+                        Ranking speichern & laden
+                      </h2>
+                    </div>
+                    <button className="btn btn-primary" onClick={saveRanking}>
+                      <Save size={18} />
+                      Aktuelles Ranking speichern
+                    </button>
+                  </div>
+
+                  {savedRankings.length > 0 && (
+                    <div style={{ marginTop: '1.5rem' }}>
+                      <h3 style={{ 
+                        fontSize: '1.1rem', 
+                        color: '#94a3b8', 
+                        marginBottom: '1rem',
+                        fontWeight: '500'
+                      }}>
+                        Gespeicherte Rankings:
+                      </h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        {savedRankings.map(ranking => (
+                          <div key={ranking.id} className="saved-ranking-item">
+                            <div>
+                              <div style={{ fontWeight: '600', fontSize: '1rem', marginBottom: '0.25rem' }}>
+                                {ranking.name}
+                              </div>
+                              <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                                Gespeichert am: {ranking.date}
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <button 
+                                className="btn btn-secondary btn-small"
+                                onClick={() => loadRanking(ranking)}
+                              >
+                                <FolderOpen size={16} />
+                                Laden
+                              </button>
+                              <button 
+                                className="btn btn-danger btn-small"
+                                onClick={() => deleteRanking(ranking.id)}
+                              >
+                                <Trash size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {savedRankings.length === 0 && (
+                    <div style={{
+                      marginTop: '1rem',
+                      padding: '1.5rem',
+                      textAlign: 'center',
+                      color: '#94a3b8',
+                      fontSize: '0.9rem',
+                      background: 'rgba(59, 130, 246, 0.05)',
+                      borderRadius: '8px',
+                      border: '1px dashed rgba(59, 130, 246, 0.2)'
+                    }}>
+                      Noch keine Rankings gespeichert. Klicke auf "Aktuelles Ranking speichern" um zu beginnen.
+                    </div>
+                  )}
+                </div>
+                <div className="card" style={{ marginBottom: '2rem' }}>
+                  <div 
+                    onClick={() => setShowWeights(!showWeights)}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <Settings size={24} color="#3b82f6" />
+                      <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '600' }}>
+                        Gewichtungen anpassen
+                      </h2>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <span style={{
+                        background: remainingWeight === 0 ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                        color: remainingWeight === 0 ? '#4ade80' : '#f87171',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '8px',
+                        fontWeight: '600',
+                        fontSize: '0.9rem'
+                      }}>
+                        {remainingWeight >= 0 ? `${remainingWeight}%` : `${remainingWeight}%`} verfügbar
+                      </span>
+                      {showWeights ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
+                    </div>
+                  </div>
+
+                  {showWeights && (
+                    <div style={{
+                      marginTop: '1.5rem',
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                      gap: '1rem'
+                    }}>
+                      {[
+                        { key: 'votes', label: 'Stimmenzahl letzte Wahl' },
+                        { key: 'workgroups', label: 'Anzahl Arbeitsgruppen' },
+                        { key: 'attendance', label: 'Sitzungsteilnahme' },
+                        { key: 'punctualityStart', label: 'Pünktlichkeit Beginn' },
+                        { key: 'punctualityShort', label: 'Pünktlichkeit kurze Pausen' },
+                        { key: 'punctualityLunch', label: 'Pünktlichkeit Mittagspause' },
+                        { key: 'partialRelease', label: 'Teilfreistellung' },
+                        { key: 'fullRelease', label: 'Vollfreistellung' },
+                        { key: 'membership', label: 'Mitgliedschaftsdauer' },
+                        { key: 'age', label: 'Alter' }
+                      ].map(({ key, label }) => (
+                        <div key={key} style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '1rem'
+                        }}>
+                          <label style={{ fontSize: '0.9rem', color: '#cbd5e1' }}>
+                            {label}
+                          </label>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <input
+                              type="number"
+                              className="weight-input"
+                              value={weights[key]}
+                              onChange={(e) => updateWeight(key, e.target.value)}
+                              min="0"
+                              max="100"
+                              step="0.5"
+                            />
+                            <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>%</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ marginBottom: '2rem' }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '1.5rem',
+                    flexWrap: 'wrap',
+                    gap: '1rem'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <Users size={24} color="#3b82f6" />
+                      <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '600' }}>
+                        Kandidaten (11 Personen)
+                      </h2>
+                    </div>
+                    <button 
+                      className="btn btn-danger btn-small"
+                      onClick={resetAllData}
+                      title="Löscht alle Bewertungsdaten aller Personen (Name, Geschlecht, Alter, Mitgliedschaft bleiben erhalten)"
+                    >
+                      <Trash2 size={16} />
+                      Alle Bewertungsdaten löschen
+                    </button>
+                  </div>
+
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
+                    gap: '1.5rem'
+                  }}>
+                    {persons.map((person, idx) => (
+                      <div key={person.id} className="card animate-in" style={{
+                        animationDelay: `${idx * 0.05}s`
+                      }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: '1rem'
+                        }}>
+                          <h3 style={{
+                            margin: 0,
+                            fontSize: '1.1rem',
+                            color: '#3b82f6',
+                            fontWeight: '600'
+                          }}>
+                            Person {idx + 1}
+                          </h3>
+                          <button 
+                            className="btn btn-danger btn-small"
+                            onClick={() => resetPersonData(person.id)}
+                            title="Löscht alle Bewertungsdaten dieser Person"
+                          >
+                            <Trash size={14} />
+                            Daten löschen
+                          </button>
+                        </div>
+
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr',
+                          gap: '0.75rem'
+                        }}>
+                          <div>
+                            <label style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'block', marginBottom: '0.25rem' }}>
+                              Vorname
+                            </label>
+                            <input
+                              type="text"
+                              className="input-field"
+                              value={person.firstName}
+                              onChange={(e) => updatePerson(person.id, 'firstName', e.target.value)}
+                            />
+                          </div>
+
+                          <div>
+                            <label style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'block', marginBottom: '0.25rem' }}>
+                              Nachname
+                            </label>
+                            <input
+                              type="text"
+                              className="input-field"
+                              value={person.lastName}
+                              onChange={(e) => updatePerson(person.id, 'lastName', e.target.value)}
+                            />
+                          </div>
+
+                          <div>
+                            <label style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'block', marginBottom: '0.25rem' }}>
+                              Geschlecht
+                            </label>
+                            <select
+                              className="input-field"
+                              value={person.gender}
+                              onChange={(e) => updatePerson(person.id, 'gender', e.target.value)}
+                            >
+                              <option value="weiblich">Weiblich</option>
+                              <option value="männlich">Männlich</option>
+                              <option value="divers">Divers</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'block', marginBottom: '0.25rem' }}>
+                              Alter (Jahre / Monate)
+                            </label>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <input
+                                type="number"
+                                className="input-field"
+                                value={person.ageYears}
+                                onChange={(e) => updatePerson(person.id, 'ageYears', parseInt(e.target.value) || 0)}
+                                min="0"
+                                placeholder="J"
+                              />
+                              <input
+                                type="number"
+                                className="input-field"
+                                value={person.ageMonths}
+                                onChange={(e) => updatePerson(person.id, 'ageMonths', parseInt(e.target.value) || 0)}
+                                min="0"
+                                max="11"
+                                placeholder="M"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'block', marginBottom: '0.25rem' }}>
+                              Stimmenzahl
+                            </label>
+                            <input
+                              type="number"
+                              className="input-field"
+                              value={person.votes}
+                              onChange={(e) => updatePerson(person.id, 'votes', parseInt(e.target.value) || 0)}
+                              min="0"
+                            />
+                          </div>
+
+                          <div>
+                            <label style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'block', marginBottom: '0.25rem' }}>
+                              Arbeitsgruppen
+                            </label>
+                            <input
+                              type="number"
+                              className="input-field"
+                              value={person.workgroups}
+                              onChange={(e) => updatePerson(person.id, 'workgroups', parseInt(e.target.value) || 0)}
+                              min="0"
+                            />
+                          </div>
+
+                          <div>
+                            <label style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'block', marginBottom: '0.25rem' }}>
+                              Sitzungsteilnahme (%)
+                            </label>
+                            <input
+                              type="number"
+                              className="input-field"
+                              value={person.attendance}
+                              onChange={(e) => updatePerson(person.id, 'attendance', parseFloat(e.target.value) || 0)}
+                              min="0"
+                              max="100"
+                            />
+                          </div>
+
+                          <div>
+                            <label style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'block', marginBottom: '0.25rem' }}>
+                              Mitgliedschaft (J / M)
+                            </label>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <input
+                                type="number"
+                                className="input-field"
+                                value={person.membershipYears}
+                                onChange={(e) => updatePerson(person.id, 'membershipYears', parseInt(e.target.value) || 0)}
+                                min="0"
+                                placeholder="J"
+                              />
+                              <input
+                                type="number"
+                                className="input-field"
+                                value={person.membershipMonths}
+                                onChange={(e) => updatePerson(person.id, 'membershipMonths', parseInt(e.target.value) || 0)}
+                                min="0"
+                                max="11"
+                                placeholder="M"
+                              />
+                            </div>
+                          </div>
+
+                          <div style={{ gridColumn: '1 / -1' }}>
+                            <label style={{ 
+                              fontSize: '0.9rem', 
+                              color: '#cbd5e1', 
+                              display: 'block', 
+                              marginBottom: '0.75rem',
+                              fontWeight: '500' 
+                            }}>
+                              Pünktlichkeit (Minuten: 0 = pünktlich, negativ = zu spät)
+                            </label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+                              <div>
+                                <label style={{ 
+                                  fontSize: '0.8rem', 
+                                  color: '#94a3b8', 
+                                  display: 'block', 
+                                  marginBottom: '0.25rem',
+                                  fontWeight: '500'
+                                }}>
+                                  Sitzungsbeginn
+                                </label>
+                                <input
+                                  type="number"
+                                  className="input-field"
+                                  value={person.punctualityStart}
+                                  onChange={(e) => updatePerson(person.id, 'punctualityStart', parseInt(e.target.value) || 0)}
+                                  placeholder="z.B. -5"
+                                />
+                              </div>
+                              <div>
+                                <label style={{ 
+                                  fontSize: '0.8rem', 
+                                  color: '#94a3b8', 
+                                  display: 'block', 
+                                  marginBottom: '0.25rem',
+                                  fontWeight: '500'
+                                }}>
+                                  Kurze Pause
+                                </label>
+                                <input
+                                  type="number"
+                                  className="input-field"
+                                  value={person.punctualityShort}
+                                  onChange={(e) => updatePerson(person.id, 'punctualityShort', parseInt(e.target.value) || 0)}
+                                  placeholder="z.B. 0"
+                                />
+                              </div>
+                              <div>
+                                <label style={{ 
+                                  fontSize: '0.8rem', 
+                                  color: '#94a3b8', 
+                                  display: 'block', 
+                                  marginBottom: '0.25rem',
+                                  fontWeight: '500'
+                                }}>
+                                  Mittagspause
+                                </label>
+                                <input
+                                  type="number"
+                                  className="input-field"
+                                  value={person.punctualityLunch}
+                                  onChange={(e) => updatePerson(person.id, 'punctualityLunch', parseInt(e.target.value) || 0)}
+                                  placeholder="z.B. -10"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="checkbox-wrapper">
+                            <input
+                              type="checkbox"
+                              className="checkbox"
+                              checked={person.partialRelease}
+                              onChange={(e) => updatePerson(person.id, 'partialRelease', e.target.checked)}
+                            />
+                            <label style={{ fontSize: '0.9rem', cursor: 'pointer' }}>
+                              Teilfreistellung gewünscht
+                            </label>
+                          </div>
+
+                          <div className="checkbox-wrapper">
+                            <input
+                              type="checkbox"
+                              className="checkbox"
+                              checked={person.fullRelease}
+                              onChange={(e) => updatePerson(person.id, 'fullRelease', e.target.checked)}
+                            />
+                            <label style={{ fontSize: '0.9rem', cursor: 'pointer' }}>
+                              Vollfreistellung gewünscht
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {sortedPersons.length > 0 && (
+                  <div>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '1rem',
+                      marginBottom: '1.5rem'
+                    }}>
+                      <Award size={24} color="#3b82f6" />
+                      <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '600' }}>
+                        Ranking-Ergebnis
+                      </h2>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {sortedPersons.map((person, idx) => (
+                        <div key={person.id} className="card animate-in" style={{
+                          animationDelay: `${idx * 0.1}s`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '1.5rem'
+                        }}>
+                          <div className={`rank-badge ${
+                            idx === 0 ? 'rank-1' : 
+                            idx === 1 ? 'rank-2' : 
+                            idx === 2 ? 'rank-3' : 
+                            'rank-default'
+                          }`}>
+                            {idx + 1}
+                          </div>
+
+                          <div style={{ flex: 1 }}>
+                            <div style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              marginBottom: '0.5rem'
+                            }}>
+                              <div>
+                                <h3 style={{
+                                  margin: 0,
+                                  fontSize: '1.2rem',
+                                  fontWeight: '600'
+                                }}>
+                                  {person.firstName} {person.lastName}
+                                </h3>
+                                <div style={{
+                                  display: 'flex',
+                                  gap: '1rem',
+                                  marginTop: '0.25rem',
+                                  fontSize: '0.85rem',
+                                  color: '#94a3b8'
+                                }}>
+                                  <span>{person.gender}</span>
+                                  <span>•</span>
+                                  <span>{person.ageYears}J {person.ageMonths}M</span>
+                                  <span>•</span>
+                                  <span>{person.isUnder40 ? '< 40 Jahre' : '≥ 40 Jahre'}</span>
+                                </div>
+                              </div>
+                              <div style={{
+                                fontSize: '1.5rem',
+                                fontWeight: '700',
+                                color: '#3b82f6'
+                              }}>
+                                {person.totalScore.toFixed(1)}
+                              </div>
+                            </div>
+                            <div className="score-bar">
+                              <div className="score-fill" style={{
+                                width: `${person.totalScore}%`
+                              }} />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {sortedPersons.length === 0 && (
+                  <div className="card" style={{
+                    textAlign: 'center',
+                    padding: '3rem',
+                    color: '#94a3b8'
+                  }}>
+                    <TrendingUp size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+                    <p style={{ margin: 0, fontSize: '1.1rem' }}>
+                      Gib Daten für mindestens eine Person ein, um das Ranking zu sehen.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        };
+
+        ReactDOM.render(<ListenwahlRanking />, document.getElementById('root'));
+    </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "name": "listenwahl-ranking",
+  "version": "1.1.0",
+  "description": "Professionelle Webanwendung zur Ermittlung der optimalen Reihenfolge bei Listenwahlen basierend auf gewichteten Kriterien - Mit Speichern/Laden-Funktion",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p 8000 -o",
+    "dev": "npx http-server -p 8000 -o"
+  },
+  "keywords": [
+    "ranking",
+    "voting",
+    "election",
+    "personnel",
+    "webapp",
+    "react"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/listenwahl-ranking.git"
+  },
+  "homepage": "https://github.com/yourusername/listenwahl-ranking#readme",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
